@@ -2,9 +2,9 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/HomePage';
-import PetDetailsPage from './pages/PetDetailsPage'; // Placeholder
-import ApplyPage from './pages/ApplyPage'; // Placeholder
-import DashboardPage from './pages/DashboardPage'; // Placeholder
+import PetDetailsPage from './pages/PetDetailsPage';
+import ApplyPage from './pages/ApplyPage';
+import DashboardPage from './pages/DashboardPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import NotFoundPage from './pages/NotFoundPage';
@@ -12,23 +12,24 @@ import Header from './components/Layout/Header';
 import Footer from './components/Layout/Footer';
 import PrivateRoute from './components/Common/PrivateRoute';
 import { useAuth } from './context/AuthContext';
-import LoadingSpinner from './components/Common/LoadingSpinner'; // Import LoadingSpinner
+import LoadingSpinner from './components/Common/LoadingSpinner';
+import AddPetForm from './pages/AddPetForm'; // <--- ADD THIS IMPORT
 
 function App() {
   const { currentUser, loading } = useAuth();
 
   if (loading) {
-    return <LoadingSpinner fullScreen />; // Show full-screen spinner while checking auth
+    return <LoadingSpinner fullScreen />;
   }
 
   return (
     <Router>
-      <div className="flex flex-col min-h-screen bg-gray-50">
+      <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-gray-100">
         <Header />
-        <main className="flex-grow container mx-auto p-4">
+        <main className="flex-grow container mx-auto px-4 py-8">
           <Routes>
             <Route path="/" element={<HomePage />} />
-            <Route path="/pets/:id" element={<PetDetailsPage />} /> {/* Placeholder */}
+            <Route path="/pets/:id" element={<PetDetailsPage />} />
 
             {/* Public routes accessible only if NOT logged in */}
             <Route
@@ -48,6 +49,11 @@ function App() {
             <Route
               path="/dashboard"
               element={<PrivateRoute allowedRoles={['shelter']}><DashboardPage /></PrivateRoute>}
+            />
+            {/* <--- ADD THIS NEW ROUTE FOR ADDING PETS */}
+            <Route
+              path="/add-pet"
+              element={<PrivateRoute allowedRoles={['shelter']}><AddPetForm /></PrivateRoute>}
             />
 
             {/* Catch-all route */}
