@@ -3,9 +3,11 @@ import React, { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { getPetById } from '../api/petpalsApi';
 import LoadingSpinner from '../components/Common/LoadingSpinner';
+import { useAuth } from '../context/AuthContext';
 
 function PetDetailsPage() {
   const { id } = useParams();
+  const { userProfile, currentUser } = useAuth(); // Get user profile and currentUser to determine if adopter and logged in
   const [pet, setPet] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -20,7 +22,7 @@ function PetDetailsPage() {
         setPet(response.data);
       } catch (err) {
         console.error("Error fetching pet details:", err);
-        setError('Failed to load pet details. Pet might not exist.');
+        setError('Failed to load pet details. Pet might not exist or network issue.');
       } finally {
         setLoading(false);
       }
@@ -38,7 +40,10 @@ function PetDetailsPage() {
         <div className="text-center p-8 bg-white rounded-2xl shadow-2xl">
           <div className="text-6xl mb-4">😿</div>
           <div className="text-2xl font-bold text-red-600 mb-2">Oops!</div>
-          <div className="text-gray-600">{error}</div>
+          <div className="text-red-500 text-xl font-semibold">{error}</div>
+          <Link to="/" className="mt-6 inline-block bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-6 rounded-lg transition-colors duration-300">
+            Go to Home
+          </Link>
         </div>
       </div>
     );
@@ -46,20 +51,19 @@ function PetDetailsPage() {
 
   if (!pet) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 flex items-center justify-center">
-        <div className="text-center p-8 bg-white rounded-2xl shadow-2xl">
-          <div className="text-6xl mb-4">🔍</div>
-          <div className="text-2xl font-bold text-gray-800 mb-2">Pet Not Found</div>
-          <div className="text-gray-600">The pet you're looking for doesn't exist.</div>
-        </div>
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-xl text-gray-600">Pet not found.</p>
       </div>
     );
   }
 
+  const isAdopter = userProfile?.role === 'adopter';
+  const isAvailable = pet.status === 'available';
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-50 via-pink-50 to-blue-50">
       {/* Hero Section */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-purple-600 via-pink-600 to-blue-600 py-16">
+      <div className="relative overflow-hidden bg-gradient-to-r from-blue-600 to-purple-700 py-16">
         <div className="absolute inset-0 bg-black opacity-20"></div>
         <div className="relative container mx-auto px-6 text-center">
           <div className="inline-block bg-white/20 backdrop-blur-sm rounded-full px-6 py-2 mb-4">
@@ -81,28 +85,29 @@ function PetDetailsPage() {
 
       {/* Main Content */}
       <div className="container mx-auto px-6 py-12">
-        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-[1.01] transition-transform duration-300">
+        <div className="bg-white rounded-3xl shadow-2xl overflow-hidden transform hover:scale-101 transition-transform duration-300">
           <div className="lg:flex">
             {/* Image Section */}
             <div className="lg:w-1/2 relative group">
               <div className="aspect-square lg:h-[600px] overflow-hidden">
                 <img
-                  src={pet.imageUrl || 'https://via.placeholder.com/600x600?text=Pet+Image'}
+                  src={pet.imageUrl || 'https://placehold.co/600x600?text=Pet+Image'}
                   alt={pet.name}
                   className={`w-full h-full object-cover transition-all duration-700 ${
                     imageLoaded ? 'scale-100 opacity-100' : 'scale-110 opacity-0'
                   } group-hover:scale-105`}
                   onLoad={() => setImageLoaded(true)}
+                  onError={(e) => { e.target.onerror = null; e.target.src = `https://placehold.co/600x600/EF4444/FFFFFF?text=Image+Error`; setImageLoaded(true); }}
                 />
 
                 {/* Status Badge */}
                 <div className="absolute top-6 right-6">
                   <div className={`px-4 py-2 rounded-full font-bold text-sm shadow-lg backdrop-blur-sm ${
-                    pet.status === 'Available'
+                    pet.status === 'available'
                       ? 'bg-emerald-500/90 text-white'
                       : 'bg-red-500/90 text-white'
                   }`}>
-                    {pet.status === 'Available' ? '✨ Available' : '❤️ Adopted'}
+                    {pet.status === 'available' ? '✨ Available' : '❤️ Adopted'}
                   </div>
                 </div>
 
@@ -127,76 +132,59 @@ function PetDetailsPage() {
                   <div className="text-purple-600 font-semibold text-sm mb-1">Breed</div>
                   <div className="text-gray-800 font-bold">{pet.breed}</div>
                 </div>
-                <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-2xl border border-green-200">
-                  <div className="text-green-600 font-semibold text-sm mb-1">Age</div>
+                <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-4 rounded-2xl border border-pink-200">
+                  <div className="text-pink-600 font-semibold text-sm mb-1">Age</div>
                   <div className="text-gray-800 font-bold">{pet.age} years</div>
                 </div>
-                <div className="bg-gradient-to-br from-pink-50 to-pink-100 p-4 rounded-2xl border border-pink-200">
-                  <div className="text-pink-600 font-semibold text-sm mb-1">Status</div>
-                  <div className={`font-bold ${pet.status === 'Available' ? 'text-green-600' : 'text-red-600'}`}>
-                    {pet.status}
-                  </div>
+                <div className="bg-gradient-to-br from-green-50 to-green-100 p-4 rounded-2xl border border-green-200">
+                  <div className="text-green-600 font-semibold text-sm mb-1">Gender</div>
+                  <div className="text-gray-800 font-bold capitalize">{pet.gender}</div>
                 </div>
               </div>
 
-              {/* About Section */}
+              {/* Description */}
               <div className="mb-8">
-                <h2 className="text-3xl font-bold text-gray-800 mb-4 flex items-center">
-                  <span className="mr-3">🐕</span>
-                  About {pet.name}
-                </h2>
-                <div className="bg-gradient-to-r from-gray-50 to-gray-100 p-6 rounded-2xl border border-gray-200">
-                  <p className="text-gray-700 leading-relaxed text-lg">
-                    {pet.description || 'No detailed description available.'}
-                  </p>
-                </div>
+                <h2 className="text-2xl font-bold text-gray-800 mb-4">About {pet.name}</h2>
+                <p className="text-gray-700 leading-relaxed">{pet.description}</p>
               </div>
 
-              {/* Temperament Section */}
-              {pet.temperament && (
-                <div className="mb-8">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                    <span className="mr-3">😊</span>
-                    Personality
-                  </h2>
-                  <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-2xl border border-yellow-200">
-                    <p className="text-gray-700 leading-relaxed">{pet.temperament}</p>
-                  </div>
-                </div>
-              )}
+              {/* Temperament */}
+              <div className="mb-8">
+                <h3 className="text-xl font-bold text-gray-800 mb-3">Temperament</h3>
+                <p className="text-gray-700 leading-relaxed">{pet.temperament}</p>
+              </div>
 
-              {/* Medical Needs Section */}
-              {pet.medicalNeeds && (
-                <div className="mb-8">
-                  <h2 className="text-2xl font-bold text-gray-800 mb-4 flex items-center">
-                    <span className="mr-3">🏥</span>
-                    Medical Care
-                  </h2>
-                  <div className="bg-gradient-to-r from-red-50 to-pink-50 p-6 rounded-2xl border border-red-200">
-                    <p className="text-gray-700 leading-relaxed">{pet.medicalNeeds}</p>
-                  </div>
-                </div>
-              )}
+              {/* Medical Needs */}
+              <div className="mb-8">
+                <h3 className="text-xl font-bold text-gray-800 mb-3">Medical Needs</h3>
+                <p className="text-gray-700 leading-relaxed">
+                  {pet.medicalNeeds || 'None specified.'}
+                </p>
+              </div>
 
-              {/* Adoption Button */}
-              {pet.status === 'Available' && (
-                <div className="mt-10">
+              {/* Adoption Call to Action */}
+              {isAdopter && isAvailable && (
+                <div className="mt-8 text-center">
                   <Link
                     to={`/pets/${pet.id}/apply`}
-                    className="group relative inline-flex items-center justify-center w-full bg-gradient-to-r from-emerald-500 to-blue-600 hover:from-emerald-600 hover:to-blue-700 text-white font-bold py-6 px-8 rounded-2xl text-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl"
+                    className="inline-block bg-gradient-to-r from-blue-600 to-purple-600 text-white font-bold py-4 px-10 rounded-xl shadow-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 text-lg"
                   >
-                    <span className="mr-3 text-2xl group-hover:animate-bounce">💝</span>
-                    <span>Adopt {pet.name} Today</span>
-                    <span className="ml-3 text-2xl group-hover:animate-bounce delay-100">🏠</span>
-
-                    {/* Button glow effect */}
-                    <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-emerald-400 to-blue-500 opacity-0 group-hover:opacity-20 blur-xl transition-opacity duration-300"></div>
+                    Apply to Adopt {pet.name}
                   </Link>
-
-                  <div className="text-center mt-4 text-gray-600">
-                    <span className="text-sm">🌟 Give {pet.name} a loving forever home</span>
-                  </div>
                 </div>
+              )}
+
+              {isAdopter && !isAvailable && (
+                <p className="text-center text-red-500 font-semibold text-lg mt-4">
+                  This pet is currently not available for adoption.
+                </p>
+              )}
+
+              {!currentUser && (
+                <p className="text-center text-blue-500 font-semibold text-lg mt-4">
+                  <Link to="/login" className="underline hover:text-blue-700">Login</Link> or{' '}
+                  <Link to="/register" className="underline hover:text-blue-700">Create an Account</Link> to apply for adoption.
+                </p>
               )}
             </div>
           </div>
@@ -221,8 +209,8 @@ function PetDetailsPage() {
             </div>
             <div className="text-center p-6 bg-gradient-to-br from-pink-50 to-red-50 rounded-2xl">
               <div className="text-4xl mb-4">❤️</div>
-              <div className="font-bold text-gray-800">Loving</div>
-              <div className="text-sm text-gray-600 mt-2">Bonds deeply with their family</div>
+              <div className="font-bold text-gray-800">Affectionate</div>
+              <div className="text-sm text-gray-600 mt-2">Enjoys cuddles and companionship</div>
             </div>
           </div>
         </div>

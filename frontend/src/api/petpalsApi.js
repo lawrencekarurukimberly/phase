@@ -1,7 +1,8 @@
 // frontend/src/api/petpalsApi.js
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
+// Corrected: Matches backend's default Uvicorn address AND the /api prefix you have in main.py
+const API_BASE_URL = 'http://127.0.0.1:8000/api'; 
 
 const petpalsApi = axios.create({
   baseURL: API_BASE_URL,
@@ -37,7 +38,7 @@ export const addPet = (petData, imageFile) => {
     formData.append(key, petData[key]);
   }
   if (imageFile) {
-    formData.append('image', imageFile);
+    formData.append('image', imageFile); // Changed from 'photo' to 'image'
   }
   return petpalsApi.post('/pets', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
@@ -49,7 +50,7 @@ export const updatePet = (id, petData, imageFile) => {
     formData.append(key, petData[key]);
   }
   if (imageFile) {
-    formData.append('image', imageFile);
+    formData.append('image', imageFile); // Changed from 'photo' to 'image'
   }
   return petpalsApi.put(`/pets/${id}`, formData, {
     headers: { 'Content-Type': 'multipart/form-data' },

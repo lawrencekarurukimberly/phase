@@ -1,15 +1,15 @@
 // frontend/src/context/AuthContext.jsx
-
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut as firebaseSignOut } from 'firebase/auth';
 import { auth } from '../firebase/config'; // Client-side Firebase auth instance
 import { registerProfile, getProfile } from '../api/petpalsApi'; // Backend API calls
+import LoadingSpinner from '../components/Common/LoadingSpinner'; // Ensure this import is correct
 
 const AuthContext = createContext();
 
-export const useAuth = () => {
+// Make sure 'useAuth' is explicitly exported as a named export
+export const useAuth = () => { // <--- THIS LINE IS CRUCIAL
   const context = useContext(AuthContext);
-  // Add a check here for robust error handling, as discussed before
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
@@ -17,80 +17,95 @@ export const useAuth = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null); // Firebase User object from client SDK
-  const [userProfile, setUserProfile] = useState(null); // User's custom profile from our backend (contains role)
-  const [loading, setLoading] = useState(true); // Initial state for auth check
+  const [currentUser, setCurrentUser] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       if (user) {
-        // User is signed in with Firebase Auth
         setCurrentUser(user);
         try {
-          // Get Firebase ID token
           const idToken = await user.getIdToken();
-          localStorage.setItem('token', idToken); // Store it for backend API calls
-
-          // Fetch user's profile from our backend to get their role and other details
+          localStorage.setItem('token', idToken);
+          // Corrected: Access data directly, not data.user
           const profileResponse = await getProfile();
-          setUserProfile(profileResponse.data.user);
+          setUserProfile(profileResponse.data); // Corrected line
         } catch (error) {
-          console.error("Error fetching user profile from backend:", error.response?.data?.message || error.message);
-          // If profile fetch fails, it means the user's profile might not exist in Firestore yet
-          // or there's a backend issue. Clear auth state.
-          await firebaseSignOut(auth); // Force sign out if profile fails
-          localStorage.removeItem('token');
-          setCurrentUser(null);
+          console.error("Error fetching user profile:", error.message);
+          // If profile fetching fails (e.g., profile not yet registered), clear it
+          // This ensures the header correctly shows "Login/Sign Up" if profile is missing
           setUserProfile(null);
         }
       } else {
-        // User is signed out
+        // User logged out or no user is signed in
         setCurrentUser(null);
         setUserProfile(null);
         localStorage.removeItem('token');
       }
-      setLoading(false); // Auth state check is complete
+      setLoading(false);
     });
 
-    return unsubscribe; // Clean up the listener
-  }, []); // Run only once on mount
+    return () => unsubscribe();
+  }, []);
 
   const login = async (email, password) => {
     try {
-      await signInWithEmailAndPassword(auth, email, password);
+      setLoading(true); // Start loading before login attempt
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+
+      const idToken = await user.getIdToken();
+      localStorage.setItem('token', idToken);
+
+      setCurrentUser(user); // Update current user
+      try {
+        const profileResponse = await getProfile();
+        setUserProfile(profileResponse.data); // Set profile after login
+      } catch (profileError) {
+        console.error("Error fetching user profile after login:", profileError.message);
+        setUserProfile(null); // Clear profile if fetching fails
+        // Consider specific handling if profile is expected but not found after login
+      }
+      setLoading(false);
       return { success: true };
     } catch (error) {
       console.error('Login failed:', error.message);
-      let errorMessage = 'Failed to log in.';
+      let errorMessage = 'Failed to log in. Please check your credentials.';
       if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password') {
         errorMessage = 'Invalid email or password.';
-      } else if (error.code === 'auth/too-many-requests') {
-        errorMessage = 'Too many login attempts. Please try again later.';
       }
+      setLoading(false); // Stop loading on error
       return { success: false, error: errorMessage };
     }
   };
 
   const register = async (email, password, name, role) => {
     try {
+      setLoading(true); // Start loading before registration attempt
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
       const user = userCredential.user;
 
       const idToken = await user.getIdToken();
       localStorage.setItem('token', idToken);
 
-      await registerProfile({ uid: user.uid, email: user.email, name, role });
+      // Call backend to register profile and capture the response
+      const registerProfileResponse = await registerProfile({ email: user.email, name, role }); // Firebase UID is handled by backend's get_firebase_user_by_token
 
+      setCurrentUser(user); // Set Firebase user
+      setUserProfile(registerProfileResponse.data); // Corrected: Set profile immediately from registration response
+
+      setLoading(false); // Stop loading after successful registration
       return { success: true };
     } catch (error) {
       console.error('Registration failed:', error.message);
       let errorMessage = 'Failed to register.';
       if (error.code === 'auth/email-already-in-use') {
         errorMessage = 'This email is already registered.';
-    
       } else if (error.code === 'auth/weak-password') {
         errorMessage = 'Password is too weak.';
       }
+      setLoading(false); // Stop loading on error
       return { success: false, error: errorMessage };
     }
   };
@@ -98,6 +113,10 @@ export const AuthProvider = ({ children }) => {
   const logout = async () => {
     try {
       await firebaseSignOut(auth);
+      // Clear state and local storage immediately on logout
+      setCurrentUser(null);
+      setUserProfile(null);
+      localStorage.removeItem('token');
       return { success: true };
     } catch (error) {
       console.error('Logout failed:', error.message);
@@ -106,17 +125,22 @@ export const AuthProvider = ({ children }) => {
   };
 
   const value = {
-    currentUser,    // Firebase Auth user (uid, email, etc.)
-    userProfile,    // Our custom user profile from Firestore (role, name, etc.)
-    loading,        // Is initial authentication check complete?
+    currentUser,
+    userProfile,
+    loading, // Make sure loading state is passed
     login,
     register,
     logout,
   };
 
+  // Only render children when authentication state has been determined
+  if (loading) {
+    return <LoadingSpinner fullScreen />;
+  }
+
   return (
     <AuthContext.Provider value={value}>
-      {children} {/* <--- CORRECTED LINE: Always render children */}
+      {children}
     </AuthContext.Provider>
   );
 };

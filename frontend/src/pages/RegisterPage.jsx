@@ -19,7 +19,6 @@ function RegisterPage() {
     setLoading(true);
     const result = await register(email, password, name, role);
     if (result.success) {
-      // AuthContext's onAuthStateChanged will handle profile fetch and redirect
       navigate('/');
     } else {
       setError(result.error || 'Failed to register. Please try again.');
@@ -42,81 +41,79 @@ function RegisterPage() {
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-purple-500 to-pink-500 rounded-full mb-4 animate-spin" style={{animationDuration: '3s'}}>
             <span className="text-2xl">🐾</span>
           </div>
-          <h2 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+          <h2 className="text-3xl font-bold text-gray-800">
             Join PetPals
           </h2>
           <p className="text-gray-600 mt-2">Find your perfect companion</p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border-l-4 border-red-500 p-4 mb-6 rounded-r-lg animate-shake">
-            <p className="text-red-700 text-sm">{error}</p>
-          </div>
-        )}
-
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="group">
-            <label className="block text-gray-700 text-sm font-semibold mb-2 group-focus-within:text-purple-600 transition-colors duration-300" htmlFor="name">
-              Your Name
+          {error && (
+            <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+              <strong className="font-bold">Error! </strong>
+              <span className="block sm:inline">{error}</span>
+            </div>
+          )}
+
+          <div>
+            <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-1">
+              Full Name
             </label>
             <input
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300 bg-gray-50 focus:bg-white transform focus:scale-105"
-              id="name"
               type="text"
-              placeholder="John Doe"
+              id="name"
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500 text-gray-900"
               value={name}
               onChange={(e) => setName(e.target.value)}
               required
             />
           </div>
 
-          <div className="group">
-            <label className="block text-gray-700 text-sm font-semibold mb-2 group-focus-within:text-purple-600 transition-colors duration-300" htmlFor="email">
+          <div>
+            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
               Email Address
             </label>
             <input
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300 bg-gray-50 focus:bg-white transform focus:scale-105"
-              id="email"
               type="email"
-              placeholder="your@email.com"
+              id="email"
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500 text-gray-900"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
             />
           </div>
 
-          <div className="group">
-            <label className="block text-gray-700 text-sm font-semibold mb-2 group-focus-within:text-purple-600 transition-colors duration-300" htmlFor="password">
+          <div>
+            <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
               Password
             </label>
             <input
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300 bg-gray-50 focus:bg-white transform focus:scale-105"
-              id="password"
               type="password"
-              placeholder="••••••••"
+              id="password"
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500 text-gray-900"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
             />
           </div>
 
-          <div className="group">
-            <label className="block text-gray-700 text-sm font-semibold mb-2 group-focus-within:text-purple-600 transition-colors duration-300" htmlFor="role">
-              I am a:
+          <div>
+            <label htmlFor="role" className="block text-sm font-medium text-gray-700 mb-1">
+              I am a...
             </label>
             <select
-              className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:border-purple-500 focus:ring-2 focus:ring-purple-200 transition-all duration-300 bg-gray-50 focus:bg-white transform focus:scale-105"
               id="role"
+              className="mt-1 block w-full px-4 py-2 border border-gray-300 rounded-lg shadow-sm focus:ring-purple-500 focus:border-purple-500 text-gray-900"
               value={role}
               onChange={(e) => setRole(e.target.value)}
             >
-              <option value="adopter">🏠 Adopter (looking for a pet)</option>
-              <option value="shelter">🏢 Shelter/Rescue (listing pets)</option>
+              <option value="adopter">Seeking a Pet</option>
+              <option value="shelter">Shelter/Rescue</option>
             </select>
           </div>
 
           <button
-            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
+            className="w-full bg-gradient-to-r from-purple-600 to-pink-600 text-white font-bold py-3 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 hover:shadow-2xl disabled:opacity-50 disabled:cursor-not-allowed relative overflow-hidden group"
             type="submit"
             disabled={loading}
           >
@@ -138,7 +135,7 @@ function RegisterPage() {
               Already have an account?{' '}
               <Link
                 to="/login"
-                className="font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 transition-all duration-300 hover:underline"
+                className="font-bold text-purple-600 hover:text-purple-800 transition-all duration-300 hover:underline"
               >
                 Sign In
               </Link>
@@ -146,17 +143,6 @@ function RegisterPage() {
           </div>
         </form>
       </div>
-
-      <style jsx>{`
-        @keyframes shake {
-          0%, 100% { transform: translateX(0); }
-          25% { transform: translateX(-5px); }
-          75% { transform: translateX(5px); }
-        }
-        .animate-shake {
-          animation: shake 0.5s ease-in-out;
-        }
-      `}</style>
     </div>
   );
 }

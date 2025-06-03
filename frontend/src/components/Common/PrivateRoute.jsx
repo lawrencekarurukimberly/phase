@@ -1,7 +1,7 @@
 // frontend/src/components/Common/PrivateRoute.jsx
 import React from 'react';
 import { Navigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/AuthContext'; // Ensure correct path
 import LoadingSpinner from './LoadingSpinner';
 
 const PrivateRoute = ({ children, allowedRoles = [] }) => {
@@ -17,6 +17,7 @@ const PrivateRoute = ({ children, allowedRoles = [] }) => {
   }
 
   // If Firebase authenticated but user profile (role) is still loading from backend
+  // This can happen briefly if the backend profile fetch is slow.
   if (currentUser && !userProfile) {
     return <LoadingSpinner fullScreen />;
   }
