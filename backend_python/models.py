@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String, Text, ForeignKey, TIMESTAMP, Enum, Boolean
 from sqlalchemy.orm import relationship
-from database import Base # Import Base from your database.py
+from .database import Base # <-- THIS IS THE CRUCIAL CHANGE
 import enum
 from datetime import datetime
 

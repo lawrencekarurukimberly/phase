@@ -24,8 +24,8 @@ const featuredImages = [
     alt: 'Siamese Kitten, 4 months old'
   },
   {
-src: 'https://i.pinimg.com/736x/42/7e/54/427e549668d89c519811fd77a9a6f7f9.jpg',
-alt: 'Labrador Retriever Puppy, 5 months old'
+    src: 'https://i.pinimg.com/736x/42/7e/54/427e549668d89c519811fd77a9a6f7f9.jpg',
+    alt: 'Labrador Retriever Puppy, 5 months old'
   },
   {
     src: 'https://i.pinimg.com/736x/f9/e6/f6/f9e6f671579841ea795e47322c8c1680.jpg',
