@@ -9,16 +9,16 @@ import { Link } from 'react-router-dom';
 // Define the base URL for your static files
 const STATIC_FILES_BASE_URL = 'http://127.0.0.1:8000/static';
 
-// Cleaned up featured images with consistent paths
+// Cleaned up featured images with consistent paths - NOW INCLUDES THE EXTRA 'pets/'
 const featuredImages = [
-  { src: 'images/pets/5 Ways To Gain The Trust Of Your Cat.jpeg', alt: 'Cat tips: 5 ways to gain trust' },
-  { src: 'images/pets/26 Teeny Tiny Puppies Guaranteed To Make You Say _Awww!_.jpeg', alt: 'Cute tiny puppies' },
-  { src: 'images/pets/50 Times People Captured Their Cats Losing Their Single Brain Cell (Best Pics) en 2024.jpeg', alt: 'Funny cat moments' },
-  { src: 'images/pets/55 Sweet Cat Names from Movies to Inspire You.jpeg', alt: 'Cats and movie names' },
-  { src: 'images/pets/124a99b7-1161-4602-9cee-6c167d3ff191.jpeg', alt: 'Adorable pet image' },
-  { src: 'images/pets/165cff64-6b7b-4198-a64f-df929d2b4d9a.jpeg', alt: 'Another adorable pet' },
-  { src: 'images/pets/Adorable_).jpeg', alt: 'Cute pet smiling' },
-  { src: 'images/pets/Blue Fronted Amazon - What You Need To Know About This Pet Bird - PetGuide.jpeg', alt: 'Blue Fronted Amazon parrot' },
+  { src: 'images/pets/pets/5 Ways To Gain The Trust Of Your Cat.jpeg', alt: 'Cat tips: 5 ways to gain trust' },
+  { src: 'images/pets/pets/26 Teeny Tiny Puppies Guaranteed To Make You Say _Awww!_.jpeg', alt: 'Cute tiny puppies' },
+  { src: 'images/pets/pets/50 Times People Captured Their Cats Losing Their Single Brain Cell (Best Pics) en 2024.jpeg', alt: 'Funny cat moments' },
+  { src: 'images/pets/pets/55 Sweet Cat Names from Movies to Inspire You.jpeg', alt: 'Cats and movie names' },
+  { src: 'images/pets/pets/124a99b7-1161-4602-9cee-6c167d3ff191.jpeg', alt: 'Adorable pet image' },
+  { src: 'images/pets/pets/165cff64-6b7b-4198-a64f-df929d2b4d9a.jpeg', alt: 'Another adorable pet' },
+  { src: 'images/pets/pets/Adorable_).jpeg', alt: 'Cute pet smiling' },
+  { src: 'images/pets/pets/Blue Fronted Amazon - What You Need To Know About This Pet Bird - PetGuide.jpeg', alt: 'Blue Fronted Amazon parrot' },
 ];
 
 function HomePage() {
@@ -70,7 +70,7 @@ function HomePage() {
 
   const handleImageError = (e) => {
     // Instead of hiding, show a placeholder
-    e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSIjOTk5Ij5QZXQgSW1hZ2U8L3RleHQ+PC9zdmc+';
+    e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSIjOTk5Ij5QZXQgSW1hZ2U8L2RldHQ+PC9zdmc+';
     e.target.alt = 'Pet image not available';
   };
 
@@ -130,7 +130,7 @@ function HomePage() {
             <div className="relative group">
               <div className="absolute -inset-4 bg-gradient-to-r from-purple-400 to-blue-400 rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
               <img
-                src={`${STATIC_FILES_BASE_URL}/images/pets/1ec33224-0cd7-474f-927d-1249ccb8bb2b.jpeg`}
+                src={`${STATIC_FILES_BASE_URL}/images/pets/pets/1ec33224-0cd7-474f-927d-1249ccb8bb2b.jpeg`}
                 alt="A cute pet looking for a home"
                 className="relative rounded-3xl shadow-2xl max-w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700 border-4 border-white/20"
                 style={{ maxHeight: '500px', minHeight: '300px', width: 'auto' }}

@@ -3,23 +3,20 @@ import os
 from dotenv import load_dotenv
 from typing import Optional, List
 from datetime import datetime
+import uuid
 
-# IMPORTANT: Ensure Header is imported from fastapi and StaticFiles from fastapi.staticfiles
 from fastapi import FastAPI, Depends, HTTPException, status, UploadFile, File, Form, APIRouter, Header
-from fastapi.staticfiles import StaticFiles # NEW: Import StaticFiles
+from fastapi.staticfiles import StaticFiles
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy import or_
 
-# CORS Middleware
 from fastapi.middleware.cors import CORSMiddleware
 
-# Import your database models and schemas
-# IMPORTANT: Ensure UserProfile is imported from models
-from models import Base, Owner, Pet, PetSpecies, PetStatus, PetGender, Application, Message, UserProfile
-# IMPORTANT: Ensure UserProfileCreate and UserProfileDisplay are imported from schemas
-from schemas import PetCreate, PetDisplay, ApplicationCreate, ApplicationDisplay, \
+# IMPORTANT FIX: Changed to relative imports for models and schemas
+from .models import Base, Owner, Pet, PetSpecies, PetStatus, PetGender, Application, Message, UserProfile
+from .schemas import PetCreate, PetDisplay, ApplicationCreate, ApplicationDisplay, \
                     MessageCreate, MessageDisplay, UserProfileCreate, UserProfileDisplay
 
 # Load environment variables from .env file
@@ -52,7 +49,7 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# NEW: Mount Static Files Directory
+# Mount Static Files Directory
 # Ensure your static files (e.g., images) are in a folder named 'static'
 # at the root of your backend project (e.g., backend_python/static/)
 app.mount("/static", StaticFiles(directory="static"), name="static")
@@ -106,7 +103,6 @@ async def get_current_user(
 
 api_router = APIRouter(prefix="/api")
 
-# --- Authentication Endpoints ---
 @api_router.post("/auth/register-profile", response_model=UserProfileDisplay, status_code=status.HTTP_201_CREATED)
 async def register_user_profile(profile_data: UserProfileCreate, db: Session = Depends(get_db)):
     # Check if a user with this user_id or email already exists
@@ -132,13 +128,12 @@ async def register_user_profile(profile_data: UserProfileCreate, db: Session = D
 
 @api_router.get("/auth/profile", response_model=UserProfileDisplay)
 async def get_user_profile(
-    current_user: UserProfileDisplay = Depends(get_current_user), # Dependency
+    current_user: UserProfileDisplay = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    return current_user # Should return the profile fetched by the dependency
+    return current_user
 
 
-# --- Pet Endpoints (add new pets, get pet by ID, etc.) ---
 @api_router.post("/pets", response_model=PetDisplay, status_code=status.HTTP_201_CREATED)
 async def create_pet(
     name: str = Form(...),
@@ -149,9 +144,8 @@ async def create_pet(
     temperament: Optional[str] = Form(None),
     medical_needs: Optional[str] = Form(None),
     gender: PetGender = Form(...),
-    image: UploadFile = File(...), # Changed from 'photo' to 'image'
+    image: UploadFile = File(...),
     db: Session = Depends(get_db),
-    # Requires authentication
     current_user: UserProfileDisplay = Depends(get_current_user)
 ):
     if current_user.role != 'shelter':
@@ -178,7 +172,7 @@ async def create_pet(
         medical_needs=medical_needs,
         gender=gender
     )
-    db_pet = Pet(**pet_data.model_dump(), owner_id=current_user.id, image_url=image_url) # Assign shelter's ID as owner_id
+    db_pet = Pet(**pet_data.model_dump(), owner_id=current_user.id, image_url=image_url)
     db.add(db_pet)
     db.commit()
     db.refresh(db_pet)
@@ -222,7 +216,7 @@ async def update_pet(
     gender: Optional[PetGender] = Form(None),
     image: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
-    current_user: UserProfileDisplay = Depends(get_current_user) # Authentication required
+    current_user: UserProfileDisplay = Depends(get_current_user)
 ):
     pet = db.query(Pet).filter(Pet.id == pet_id).first()
     if not pet:
@@ -283,7 +277,6 @@ async def delete_pet(pet_id: int, db: Session = Depends(get_db), current_user: U
     return {"message": "Pet deleted successfully"}
 
 
-# --- Application Endpoints ---
 @api_router.post("/applications", response_model=ApplicationDisplay, status_code=status.HTTP_201_CREATED)
 async def create_application(application_data: ApplicationCreate, db: Session = Depends(get_db), current_user: UserProfileDisplay = Depends(get_current_user)):
     if current_user.role != 'adopter':
@@ -301,71 +294,10 @@ async def create_application(application_data: ApplicationCreate, db: Session = 
     db.refresh(db_application)
     return db_application
 
-@api_router.get("/applications/user/{user_id}", response_model=List[ApplicationDisplay])
-async def get_user_applications(user_id: str, db: Session = Depends(get_db), current_user: UserProfileDisplay = Depends(get_current_user)):
-    # Ensure the user is requesting their own applications or is a shelter admin
-    if current_user.user_id != user_id and current_user.role != 'shelter':
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view these applications.")
-    
-    applications = db.query(Application).filter(Application.applicant_id == user_id).all()
-    return applications
+app.include_router(api_router)
 
-# --- Message Endpoints ---
-@api_router.post("/messages", response_model=MessageDisplay, status_code=status.HTTP_201_CREATED)
-async def create_message(message: MessageCreate, db: Session = Depends(get_db), current_user: UserProfileDisplay = Depends(get_current_user)):
-    # A message can be sent by either an adopter or a shelter
-    # Ensure sender_id matches current_user.user_id
-    if current_user.user_id != message.sender_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Sender ID does not match authenticated user.")
-
-    # Optional: Validate receiver_id exists (e.g., is another user profile ID)
-    receiver_profile = db.query(UserProfile).filter(UserProfile.user_id == message.receiver_id).first()
-    if not receiver_profile:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Receiver user not found.")
-
-    db_message = Message(**message.model_dump())
-    db.add(db_message)
-    db.commit()
-    db.refresh(db_message)
-    return db_message
-
-@api_router.get("/messages/{message_id}", response_model=MessageDisplay)
-async def get_message_by_id(message_id: int, db: Session = Depends(get_db), current_user: UserProfileDisplay = Depends(get_current_user)):
-    message = db.query(Message).filter(Message.id == message_id).first()
-    if not message:
-        raise HTTPException(status_code=404, detail="Message not found")
-    
-    # Ensure current user is either sender or receiver
-    if current_user.user_id not in [message.sender_id, message.receiver_id]:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view this message.")
-    
-    return message
-
-@api_router.get("/messages/user/{user_id}", response_model=List[MessageDisplay])
-async def get_messages_for_user(user_id: str, db: Session = Depends(get_db), current_user: UserProfileDisplay = Depends(get_current_user)):
-    # Ensure user is requesting their own messages
-    if current_user.user_id != user_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Not authorized to view messages for this user.")
-
-    messages = db.query(Message).filter(
-        or_(Message.sender_id == user_id, Message.receiver_id == user_id)
-    ).all()
-    return messages
-
-@api_router.put("/messages/{message_id}/read", response_model=MessageDisplay)
-async def mark_message_as_read(message_id: int, db: Session = Depends(get_db), current_user: UserProfileDisplay = Depends(get_current_user)):
-    message = db.query(Message).filter(Message.id == message_id).first()
-    if not message:
-        raise HTTPException(status_code=404, detail="Message not found")
-    
-    # Only the receiver can mark a message as read
-    if current_user.user_id != message.receiver_id:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Only the receiver can mark this message as read.")
-
-    message.is_read = True
-    db.commit()
-    db.refresh(message)
-    return message
-
-
-app.include_router(api_router) # IMPORTANT: Ensure this line is present and includes the api_router
+# Create database tables (if they don't exist)
+@app.on_event("startup")
+def on_startup():
+    Base.metadata.create_all(bind=engine)
+    print("Database tables created or already exist.")
