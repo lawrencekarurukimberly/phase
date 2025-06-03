@@ -1,4 +1,3 @@
-// frontend/src/App.jsx
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import HomePage from './pages/HomePage';
@@ -13,7 +12,8 @@ import Footer from './components/Layout/Footer';
 import PrivateRoute from './components/Common/PrivateRoute';
 import { useAuth } from './context/AuthContext';
 import LoadingSpinner from './components/Common/LoadingSpinner';
-import AddPetForm from './pages/AddPetForm'; // <--- ADD THIS IMPORT
+import AddPetForm from './pages/AddPetForm';
+import './pages/HomePage.css';
 
 function App() {
   const { currentUser, loading } = useAuth();
@@ -44,16 +44,27 @@ function App() {
             {/* Protected routes */}
             <Route
               path="/pets/:id/apply"
-              element={<PrivateRoute allowedRoles={['adopter']}><ApplyPage /></PrivateRoute>}
+              element={
+                <PrivateRoute allowedRoles={['adopter']}>
+                  <ApplyPage />
+                </PrivateRoute>
+              }
             />
             <Route
               path="/dashboard"
-              element={<PrivateRoute allowedRoles={['shelter']}><DashboardPage /></PrivateRoute>}
+              element={
+                <PrivateRoute allowedRoles={['shelter']}>
+                  <DashboardPage />
+                </PrivateRoute>
+              }
             />
-            {/* <--- ADD THIS NEW ROUTE FOR ADDING PETS */}
             <Route
               path="/add-pet"
-              element={<PrivateRoute allowedRoles={['shelter']}><AddPetForm /></PrivateRoute>}
+              element={
+                <PrivateRoute allowedRoles={['shelter']}>
+                  <AddPetForm />
+                </PrivateRoute>
+              }
             />
 
             {/* Catch-all route */}
