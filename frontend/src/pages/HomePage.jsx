@@ -70,7 +70,7 @@ function HomePage() {
 
   const handleImageError = (e) => {
     // Instead of hiding, show a placeholder
-    e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSIjOTk5Ij5QZXQgSW1hZ2U8L2RldHQ+PC9zdmc+';
+    e.target.src = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZGRkIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtc2l6ZT0iMTgiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIiBmaWxsPSIjOTk5IiBwZXRfSW1hZ2U+PC90ZXh0Pjwvc3ZnPg==';
     e.target.alt = 'Pet image not available';
   };
 
@@ -129,11 +129,12 @@ function HomePage() {
           <div className="lg:w-1/2 flex justify-center lg:justify-end animate-fadeInRight">
             <div className="relative group">
               <div className="absolute -inset-4 bg-gradient-to-r from-purple-400 to-blue-400 rounded-3xl blur-2xl opacity-75 group-hover:opacity-100 transition duration-1000 group-hover:duration-200"></div>
+              {/* Set a fixed height */}
               <img
                 src={`${STATIC_FILES_BASE_URL}/images/pets/pets/1ec33224-0cd7-474f-927d-1249ccb8bb2b.jpeg`}
                 alt="A cute pet looking for a home"
-                className="relative rounded-3xl shadow-2xl max-w-full h-auto object-cover transform group-hover:scale-105 transition-transform duration-700 border-4 border-white/20"
-                style={{ maxHeight: '500px', minHeight: '300px', width: 'auto' }}
+                className="relative rounded-3xl shadow-2xl w-full max-w-sm lg:max-w-md object-cover transform group-hover:scale-105 transition-transform duration-700 border-4 border-white/20"
+                style={{ height: '380px' }} 
                 onError={handleImageError}
               />
             </div>
